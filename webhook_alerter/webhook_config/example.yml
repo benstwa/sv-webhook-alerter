@@ -1,0 +1,7 @@
+secret: asbcefg1234
+url: https://hooks.slack.com/services/........
+slack_params:
+  username: "Alert Bot"
+  icon_emoji: ":bangbang:"
+date_format: "%a %d %b, %H:%M:%S"
+timezone: Europe/London
