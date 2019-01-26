@@ -7,7 +7,7 @@ requires = [
     'waitress',
     'paste',
     'pyaml',
-    'requests',
+    'slacker',
     'pytz',
     'python-dateutil',
 ]
@@ -30,4 +30,8 @@ setup(
     zip_safe=False,
     install_requires=requires,
     tests_require=requires,
+        scripts=[
+            "webhook_alerter/app.py",
+    ],
+
 )

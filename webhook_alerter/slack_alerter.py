@@ -5,10 +5,9 @@ import json
 import warnings
 import yaml
 import pkg_resources
-import requests
 import time
+import slacker
 from dateutil.parser import parse
-
 from webhook_alerter.date_utils import datetime_to_local
 
 config_path = pkg_resources.resource_filename(
@@ -75,7 +74,6 @@ class SlackAlerter(object):
     @classmethod
     def get_alerter(cls, config):
         f_name = config_path + config + '.yml'
-        print f_name
         if os.path.exists(f_name):
             with open(f_name) as f:
                 config = yaml.load(f)
@@ -149,11 +147,4 @@ class SlackAlerter(object):
 
         data.update(self.slack_params)
 
-        # requests complains about the SSL cert slack use
-        with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", ".*Certificate has no `subjectAltName`.*")
-            requests.post(
-                self.url,
-                data=json.dumps(data),
-                headers={"Content-Type": "application/json"}
-            )
+        slacker.IncomingWebhook(self.url).post(data)

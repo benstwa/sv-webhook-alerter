@@ -1,7 +1,7 @@
 from paste.translogger import TransLogger
 from pyramid.config import Configurator
 from waitress import serve
-import views
+from webhook_alerter import views
 
 
 def main():
