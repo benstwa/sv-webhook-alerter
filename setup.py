@@ -2,8 +2,6 @@ from setuptools import setup, find_packages
 
 requires = [
     'pyramid',
-    'pyramid_chameleon',
-    'pyramid_debugtoolbar',
     'waitress',
     'paste',
     'pyaml',
@@ -21,8 +19,8 @@ setup(
         "Topic :: Internet :: WWW/HTTP",
         "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
     ],
-    author='',
-    author_email='',
+    author='Ben Walker',
+    author_email='ben@benstwa.co.uk',
     url='',
     keywords='web pyramid pylons',
     packages=find_packages(),
@@ -30,8 +28,9 @@ setup(
     zip_safe=False,
     install_requires=requires,
     tests_require=requires,
-        scripts=[
-            "webhook_alerter/app.py",
-    ],
-
+    entry_points={
+        'console_scripts': [
+            'start-webhook-alerter = webhook_alerter.app:main'
+        ]
+    }
 )
