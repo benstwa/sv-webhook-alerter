@@ -1,19 +1,6 @@
-import os
-import hmac
-import hashlib
-import json
-import warnings
-import yaml
-import pkg_resources
-import time
 import slacker
-from dateutil.parser import parse
-from webhook_alerter.date_utils import datetime_to_local
-
-config_path = pkg_resources.resource_filename(
-    pkg_resources.Requirement.parse("webhook_alerter"),
-    "webhook_alerter/webhook_config/"
-)
+import time
+from webhook_alerter.alerters import BaseAlerter, AlertConfig
 
 
 DOWN_MESSAGE = """
@@ -58,49 +45,22 @@ TEMPLATES = {
 }
 
 
-class SlackAlerter(object):
+@AlertConfig()
+class SlackAlerter(BaseAlerter):
 
     # noinspection PyUnusedLocal
     def __init__(self, secret, url, date_format, timezone, slack_params=None, **kwargs):
-        self.secret = secret
+        BaseAlerter.__init__(self, secret, timezone, date_format)
         self.url = url
-        self.date_format = date_format
-        self.timezone = timezone
         if slack_params:
             self.slack_params = slack_params
         else:
             self.slack_params = {}
 
-    @classmethod
-    def get_alerter(cls, config):
-        f_name = config_path + config + '.yml'
-        if os.path.exists(f_name):
-            with open(f_name) as f:
-                config = yaml.load(f)
-                return cls(**config)
-
-    def check_hash(self, raw_data, hash_):
-        if hash_ == hmac.new(self.secret, msg=raw_data, digestmod=hashlib.sha256).hexdigest():
-            return True
-
-    def _format_time(self, sample_time):
-        return sample_time.strftime(self.date_format)
-
-    def send_alert(self, data):
+    def build_message(self, data):
         state = data['payload']['state']
 
-        time_str = data['payload']['time']
-        sample_time = parse(time_str)
-
-        sample_time = datetime_to_local(sample_time, timezone=self.timezone)
-        sample_time = self._format_time(sample_time)
-
-        alert_dict = {
-            'sample_time': sample_time,
-            'sample_link': data['payload']['sample']['url'],
-            'name': data['payload']['uj']['name'],
-            'uj_id': data['payload']['uj']['id']
-        }
+        alert_dict = super(SlackAlerter, self).build_message(data)
 
         if state != 'RECOVERED':
             cause_string = ""
@@ -135,7 +95,7 @@ class SlackAlerter(object):
         else:
             colour = '#008000'
 
-        data = {
+        message = {
             'attachments': [
                 {
                     'text': TEMPLATES[state] % alert_dict,
@@ -145,6 +105,11 @@ class SlackAlerter(object):
             ]
         }
 
-        data.update(self.slack_params)
+        message.update(self.slack_params)
 
-        slacker.IncomingWebhook(self.url).post(data)
+        return message
+
+    def send_alert(self, data):
+        message = self.build_message(data)
+
+        slacker.IncomingWebhook(self.url).post(message)
