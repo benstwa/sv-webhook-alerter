@@ -16,12 +16,11 @@ config_path = pkg_resources.resource_filename(
 ALERTERS = {}
 
 
-class AlertConfig(object):
-    def __call__(self, wrapped):
-        def callback(_, name, cls):
-            ALERTERS[name] = cls
-        venusian.attach(wrapped, callback, 'alerters')
-        return wrapped
+def alerter_config(func):
+    def callback(_, name, cls):
+        ALERTERS[name] = cls
+    venusian.attach(func, callback, 'alerters')
+    return func
 
 
 class BaseAlerter(object):
@@ -60,7 +59,7 @@ class BaseAlerter(object):
 
 
 def get_alerter(config):
-    f_name = config_path + config + '.yaml'
+    f_name = config_path + config + '.yml'
     if os.path.exists(f_name):
         with open(f_name) as f:
             config = yaml.load(f)

@@ -1,6 +1,6 @@
 import slacker
 import time
-from webhook_alerter.alerters import BaseAlerter, AlertConfig
+from webhook_alerter.alerters.alerters import BaseAlerter, alerter_config
 
 
 DOWN_MESSAGE = """
@@ -45,8 +45,8 @@ TEMPLATES = {
 }
 
 
-@AlertConfig()
-class SlackAlerter(BaseAlerter):
+@alerter_config
+class SlackWebhookAlerter(BaseAlerter):
 
     # noinspection PyUnusedLocal
     def __init__(self, secret, url, date_format, timezone, slack_params=None, **kwargs):
@@ -60,7 +60,7 @@ class SlackAlerter(BaseAlerter):
     def build_message(self, data):
         state = data['payload']['state']
 
-        alert_dict = super(SlackAlerter, self).build_message(data)
+        alert_dict = super(SlackWebhookAlerter, self).build_message(data)
 
         if state != 'RECOVERED':
             cause_string = ""

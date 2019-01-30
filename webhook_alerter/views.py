@@ -1,6 +1,6 @@
 from pyramid.view import view_config
 from webhook_alerter.logger import logger
-from webhook_alerter.slack_alerter import get_alerter
+from webhook_alerter.alerters.alerters import get_alerter
 
 
 @view_config(route_name='alerter', renderer='json')
