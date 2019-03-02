@@ -12,8 +12,9 @@ That said, if anyone finds this useful, and would like to contribute, I am open 
 
 This example has been designed to work with Slack's [incoming webhooks](https://api.slack.com/incoming-webhooks). 
 
-Configuration for endpoints is made in the yml files in the `webhook_config` directory. The Slack URL and the secret key from SciVisum will go in this file. The name of this file becomes part of the URL. For example, with `example.yml`, the URL for that configuration will be `http://yourdomain.com/slack_alerter/example`
+Configuration for endpoints is made in the yml files in the `webhook_config` directory. The Slack URL and the secret key from SciVisum will go in this file. The name of this file becomes part of the URL. For example, with `example.yml`, the URL for that configuration will be `http://yourdomain.com/example`
 
 # Installation
 
-TODO
+The easiest way to install this is with docker; see [https://github.com/benstwa/sv-webhook-alerter-docker](https://github.com/benstwa/sv-webhook-alerter-docker)
+
