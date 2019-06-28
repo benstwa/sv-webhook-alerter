@@ -30,7 +30,7 @@ class BaseAlerter(object):
         self.date_format = date_format
 
     def check_hash(self, raw_data, hash_):
-        if hash_ == hmac.new(self.secret.encode('utf-8'), msg=raw_data.encode('utf-8'), digestmod=hashlib.sha256).hexdigest():
+        if hash_ == hmac.new(self.secret.encode('utf-8'), msg=raw_data, digestmod=hashlib.sha256).hexdigest():
             return True
 
     def _localize_time(self, sample_time):
