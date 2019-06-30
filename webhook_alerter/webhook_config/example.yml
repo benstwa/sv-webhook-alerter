@@ -5,3 +5,4 @@ slack_params:
   icon_emoji: ":bangbang:"
 date_format: "%a %d %b, %H:%M:%S"
 timezone: Europe/London
+class: SlackWebhookAlerter
