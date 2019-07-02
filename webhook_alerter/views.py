@@ -1,12 +1,12 @@
 from pyramid.view import view_config
 from webhook_alerter.logger import logger
-from webhook_alerter.alerters.alerters import get_alerter
+from webhook_alerter.alerters.alerters import BaseAlerter
 
 
 @view_config(route_name='alerter', renderer='json')
 def api_webhook_alert(request):
     config = request.matchdict['config']
-    alerter = get_alerter(config)
+    alerter = BaseAlerter.get_alerter(config)
     if alerter:
         if alerter.check_hash(request.body, request.headers['X-Scivisum-Webhooks-Signature']):
             if request.json['type'] != 'test':

@@ -16,6 +16,8 @@ requires = [
     'slacker',
     'pytz',
     'python-dateutil',
+    'venusian',
+    'PyYAML'
 ]
 
 setup(

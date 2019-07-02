@@ -6,3 +6,29 @@ slack_params:
 date_format: "%a %d %b, %H:%M:%S"
 timezone: Europe/London
 class: SlackWebhookAlerter
+templates:
+  down: |
+    User Journey "%(name)s" (%(uj_id)s) failed on %(sample_time)s.
+
+    Cause(s):
+    %(causes)s
+
+    Sample link: %(sample_link)s
+  still_down: |
+    User Journey "%(name)s" (%(uj_id)s) is still down on %(sample_time)s.
+
+    Cause(s):
+    %(causes)s
+
+    Sample link: %(sample_link)s
+  escalated: |
+    This is an escalated alert that User Journey "%(name)s" (%(uj_id)s) has not yet recovered on %(sample_time)s.
+
+    Cause(s):
+    %(causes)s
+
+    Sample link: %(sample_link)s
+  recovery: |
+    User Journey "%(name)s" (%(uj_id)s) has now RECOVERED on %(sample_time)s.
+
+    Sample link: %(sample_link)s

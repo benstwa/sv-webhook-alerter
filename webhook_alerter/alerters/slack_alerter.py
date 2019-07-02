@@ -1,61 +1,21 @@
 import slacker
 import time
 from webhook_alerter.alerters.alerters import BaseAlerter, alerter_config
-
-
-DOWN_MESSAGE = """
-User Journey "%(name)s" (%(uj_id)s) failed on %(sample_time)s.
-
-Cause(s):
-%(causes)s
-
-Sample link: %(sample_link)s
-"""
-
-STILL_DOWN_MESSAGE = """
-User Journey "%(name)s" (%(uj_id)s) is still down on %(sample_time)s.
-
-Cause(s):
-%(causes)s
-
-Sample link: %(sample_link)s
-"""
-
-ESCALATED_MESSAGE = """
-This is an escalated alert that User Journey "%(name)s" (%(uj_id)s) has not yet recovered on %(sample_time)s.
-
-Cause(s):
-%(causes)s
-
-Sample link: %(sample_link)s
-"""
-
-RECOVERY = """
-User Journey "%(name)s" (%(uj_id)s) has now RECOVERED on %(sample_time)s.
-
-Sample link: %(sample_link)s
-"""
-
-TEMPLATES = {
-    'DOWN': DOWN_MESSAGE,
-    'STILL DOWN': STILL_DOWN_MESSAGE,
-    'DOWN (ESCALATION LEVEL 1)': STILL_DOWN_MESSAGE,
-    'DOWN (ESCALATION LEVEL 2)': STILL_DOWN_MESSAGE,
-    'RECOVERED': RECOVERY
-}
+from webhook_alerter.logger import logger
 
 
 @alerter_config
 class SlackWebhookAlerter(BaseAlerter):
 
     # noinspection PyUnusedLocal
-    def __init__(self, secret, url, date_format, timezone, slack_params=None, **kwargs):
-        BaseAlerter.__init__(self, secret, timezone, date_format)
+    def __init__(self, secret, url, date_format, timezone, templates, slack_params=None, **kwargs):
+        BaseAlerter.__init__(self, secret, timezone, date_format, templates)
         self.url = url
         if slack_params:
             self.slack_params = slack_params
         else:
             self.slack_params = {}
+        self.slack = slacker.IncomingWebhook(self.url)
 
     def build_message(self, data):
         state = data['payload']['state']
@@ -82,7 +42,7 @@ class SlackWebhookAlerter(BaseAlerter):
                 errors = causes['errors']
                 for step in errors['byStep']:
                     cause_string += step_string(step)
-                    cause_string += "\n"
+                    cause_string += "\n\n"
             alert_dict['causes'] = cause_string[:-2]
 
         if 'causedBy' in data['payload']:
@@ -95,10 +55,12 @@ class SlackWebhookAlerter(BaseAlerter):
         else:
             colour = '#008000'
 
+        template = self.get_template(state)
+
         message = {
             'attachments': [
                 {
-                    'text': TEMPLATES[state] % alert_dict,
+                    'text': template % alert_dict,
                     'color': colour,
                     'ts': int(time.time())
                 }
@@ -109,7 +71,19 @@ class SlackWebhookAlerter(BaseAlerter):
 
         return message
 
+    def callback(self, event):
+        try:
+            response = event.result()
+            response.raise_for_status()
+        except Exception as e:
+            logger.exception(
+                "Error from webhook %s: %s" % (self.url, e),
+            )
+        else:
+            logger.info(
+                "Webhook %s responded with status %s" % (self.url, response.status_code)
+            )
+
     def send_alert(self, data):
         message = self.build_message(data)
-
-        slacker.IncomingWebhook(self.url).post(message)
+        self.send(lambda: self.slack.post(message), self.callback)
