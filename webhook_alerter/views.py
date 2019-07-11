@@ -1,6 +1,8 @@
+import logging
 from pyramid.view import view_config
-from webhook_alerter.logger import logger
 from webhook_alerter.alerters.alerters import BaseAlerter
+
+logger = logging.getLogger('webhook_alerter')
 
 
 @view_config(route_name='alerter', renderer='json')

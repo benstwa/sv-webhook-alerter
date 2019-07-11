@@ -1,7 +1,10 @@
-import slacker
 import time
+import slacker
+import logging
 from webhook_alerter.alerters.alerters import BaseAlerter, alerter_config
-from webhook_alerter.logger import logger
+
+
+logger = logging.getLogger('webhook_alerter')
 
 
 @alerter_config
@@ -17,7 +20,7 @@ class SlackWebhookAlerter(BaseAlerter):
             self.slack_params = {}
         self.slack = slacker.IncomingWebhook(self.url)
 
-    def build_message(self, data):
+    def build_message(self, data: dict) -> dict:
         state = data['payload']['state']
 
         alert_dict = super(SlackWebhookAlerter, self).build_message(data)
