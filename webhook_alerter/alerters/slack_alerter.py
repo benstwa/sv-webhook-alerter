@@ -46,15 +46,15 @@ class SlackWebhookAlerter(BaseAlerter):
                 slows = causes['slows']
                 if 'fullSample' in slows:
                     cause_string += slows['fullSample']['message']
-                    cause_string += "\n\n"
                 if 'byStep' in slows:
-                    for step in slows['byStep']:
+                    for i, step in enumerate(slows['byStep']):
+                        if i:
+                            cause_string += "\n\n"
                         cause_string += self.step_string(step)
-                        cause_string += "\n\n"
             if 'errors' in causes:
                 cause_string += self.build_error_string(data)
 
-            alert_dict['causes'] = cause_string[:-2]
+            alert_dict['causes'] = cause_string
 
         if 'causedBy' in data['payload']:
             if data['payload']['causedBy'] in ('ERRORS', 'ERRORS AND SLOWS'):
