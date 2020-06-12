@@ -108,39 +108,44 @@ class SlackWebhookAlerterWithURL(SlackWebhookAlerter):
         SlackWebhookAlerter.__init__(self, *args, **kwargs)
 
     def build_error_string(self, data: dict) -> str:
-        uj_id = data['payload']['uj']['id']
-        sample_time = data['payload']['time']
-        query = """
-          userJourney(ujId: %s) {
-            sample(sampleTime: "%s", backup: false) {
-              errorCauses{
-                stepNumber
-                message
-                status
-                url
+        # noinspection PyBroadException
+        try:
+            uj_id = data['payload']['uj']['id']
+            sample_time = data['payload']['time']
+            query = """
+              userJourney(ujId: %s) {
+                sample(sampleTime: "%s", backup: false) {
+                  errorCauses{
+                    stepNumber
+                    message
+                    status
+                    url
+                  }
+                }
               }
-            }
-          }
-        """ % (uj_id, sample_time)
-        response = requests.post(
-            "https://portal.thinktribe.com/api/private",
-            headers={"Authorization": "Bearer {}".format(self.api_key)},
-            json={"query": "{ %s }" % query},
-            timeout=60
-        ).json()
+            """ % (uj_id, sample_time)
+            response = requests.post(
+                "https://portal.thinktribe.com/api/private",
+                headers={"Authorization": "Bearer {}".format(self.api_key)},
+                json={"query": "{ %s }" % query},
+                timeout=20
+            ).json()
 
-        cause_string = ""
-        errors = data['payload']['sample']['causes']['errors']
-        for i, step in enumerate(errors['byStep']):
-            if i:
-                cause_string += "\n\n"
-            number = step['step']['number']
-            name = step['step']['name']
-            for error in response['data']['userJourney']['sample']['errorCauses']:
-                if error['status'] == 'SLOW':
-                    continue
-                if error['stepNumber'] == number:
-                    cause_string += " - %s in component: %s in step %s: %s" % (
-                        error['message'], error['url'], number, name
-                    )
-        return cause_string
+            cause_string = ""
+            errors = data['payload']['sample']['causes']['errors']
+            for i, step in enumerate(errors['byStep']):
+                if i:
+                    cause_string += "\n\n"
+                number = step['step']['number']
+                name = step['step']['name']
+                for error in response['data']['userJourney']['sample']['errorCauses']:
+                    if error['status'] == 'SLOW':
+                        continue
+                    if error['stepNumber'] == number:
+                        cause_string += " - %s in component: %s in step %s: %s" % (
+                            error['message'], error['url'], number, name
+                        )
+            return cause_string
+        except Exception:
+            logger.exception("")
+            return super(SlackWebhookAlerterWithURL, self).build_error_string(data)
