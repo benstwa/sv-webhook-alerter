@@ -138,6 +138,7 @@ class SlackWebhookAlerterWithURL(SlackWebhookAlerter):
                     cause_string += "\n\n"
                 number = step['step']['number']
                 name = step['step']['name']
+                j = 0
                 for error in response['data']['userJourney']['sample']['errorCauses']:
                     if error['status'] == 'SLOW':
                         continue
@@ -145,6 +146,9 @@ class SlackWebhookAlerterWithURL(SlackWebhookAlerter):
                         cause_string += " - %s in component: %s in step %s: %s" % (
                             error['message'], error['url'], number, name
                         )
+                        if j:
+                            cause_string += "\n\n"
+                        j += 1
             return cause_string
         except Exception:
             logger.exception("")
